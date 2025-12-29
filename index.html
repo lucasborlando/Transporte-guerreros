@@ -9,38 +9,50 @@
 
 <style>
 body{margin:0;font-family:system-ui;background:#0b0b0e;color:#e5e7eb;padding:14px}
-.header{display:flex;justify-content:space-between;align-items:center}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .card{background:#111827;padding:16px;border-radius:14px;margin-bottom:14px}
-input,select,textarea{width:100%;padding:8px;margin-bottom:8px;border-radius:6px}
-button{padding:8px 12px;border-radius:6px;border:none;cursor:pointer;font-weight:600}
-.btn{background:#22c55e}
+label{font-size:.85rem}
+input,select,textarea{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;color:#333}
+button{padding:10px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
+.btn{background:#22c55e;color:black}
 .btn-sec{background:#334155;color:white}
 .btn-danger{background:#dc2626;color:white}
 .hidden{display:none}
-.cierre{border:1px solid #333;padding:10px;border-radius:8px;margin-bottom:10px}
+.item{padding:10px;border-bottom:1px solid #333}
+.form-group{margin-bottom:10px}
+.form-group label{display:block;margin-bottom:5px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #333;padding:8px;text-align:left}
+th{background:#334155;color:white}
+.conductor-panel{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.cierres-mensuales-container{margin-top:20px}
+.cierre-mensual-item{border:1px solid #333;padding:10px;margin-bottom:10px;border-radius:8px}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <h2>TRANSPORTE GUERREROS DEL CAMINO</h2>
-  <button id="btnLogout" class="btn-danger hidden">Cerrar sesión</button>
+<h2>TRANSPORTE GUERREROS DEL CAMINO</h2>
+<button id="btnLogout" class="btn-danger hidden">Cerrar sesión</button>
 </div>
 
 <!-- LOGIN -->
 <div id="auth" class="card">
-  <h3>Ingreso / Registro</h3>
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Contraseña">
-  <select id="rolSelect">
-    <option value="" disabled selected>Seleccione rol</option>
-    <option value="conductor">Conductor</option>
-    <option value="controlador">Controlador</option>
-    <option value="admin">Administrador</option>
-  </select>
-  <button id="btnLogin" class="btn">Ingresar</button>
-  <button id="btnRegister" class="btn-sec">Registrar</button>
+<h3>Ingreso / Registro</h3>
+<label>Email</label>
+<input id="email" type="email">
+<label>Contraseña</label>
+<input id="password" type="password">
+<label>Rol</label>
+<select id="rolSelect">
+<option value="" disabled selected>Seleccione rol</option>
+<option value="conductor">Conductor</option>
+<option value="controlador">Controlador</option>
+<option value="admin">Administrador</option>
+</select>
+<button id="btnLogin" class="btn">Ingresar</button>
+<button id="btnRegister" class="btn-sec">Registrar</button>
 </div>
 
 <!-- PANEL -->
@@ -51,187 +63,219 @@ Rol: <b id="rolUsuario"></b> | Estado: <b id="estadoUsuario"></b>
 </div>
 
 <!-- CONDUCTOR -->
-<div id="vistaConductor" class="hidden card">
+<div id="vistaConductor" class="hidden">
+<div class="card">
 <h3>Panel Conductor</h3>
 
+<div class="conductor-panel">
+<div>
+<h4>Agregar Vehículo</h4>
 <input id="matriculaVehiculo" placeholder="Matrícula">
 <input id="capacidadEstanque" type="number" placeholder="Capacidad estanque (L)">
-<button id="btnAgregarVehiculo" class="btn">Agregar vehículo</button>
+<button id="btnAgregarVehiculo" class="btn">Agregar Vehículo</button>
+</div>
 
-<hr>
-
+<div>
+<h4>Agregar Movimiento Diario</h4>
 <input id="fechaMovimiento" type="date">
 <select id="vehiculoMovimiento"></select>
 <input id="combustibleRecibido" type="number" placeholder="Combustible recibido">
 <input id="kmSalida" type="number" placeholder="KM salida">
 <input id="kmLlegada" type="number" placeholder="KM llegada">
-<button id="btnAgregarMovimiento" class="btn">Agregar movimiento</button>
+<button id="btnAgregarMovimiento" class="btn">Agregar Movimiento</button>
+</div>
+</div>
 
-<hr>
+<h4>Movimientos Diarios</h4>
+<table id="tablaMovimientos">
+<thead>
+<tr>
+<th>Fecha</th>
+<th>Vehículo</th>
+<th>Combustible</th>
+<th>KM Salida</th>
+<th>KM Llegada</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
 
+<h4>Cierre de Mes</h4>
 <select id="capacidadEstanqueCierre">
 <option value="1/4">1/4</option>
 <option value="2/4">2/4</option>
 <option value="3/4">3/4</option>
 <option value="4/4">4/4</option>
 </select>
-<button id="btnCerrarMes" class="btn">Cerrar mes</button>
+<button id="btnCerrarMes" class="btn">Cerrar Mes</button>
 
-<h4>Mis cierres mensuales</h4>
+<h4>Mis Cierres Mensuales</h4>
 <div id="cierresMensualesConductor"></div>
+
+</div>
 </div>
 
 <!-- CONTROLADOR -->
-<div id="vistaControlador" class="hidden card">
+<div id="vistaControlador" class="hidden">
+<div class="card">
 <h3>Panel Controlador</h3>
 <div id="cierresMensualesControlador"></div>
 </div>
+</div>
 
 <!-- ADMIN -->
-<div id="vistaAdmin" class="hidden card">
-<h3>Panel Administrador</h3>
+<div id="vistaAdmin" class="hidden">
+<div class="card">
+<h3>Cierres Mensuales (Admin)</h3>
 <div id="cierresMensualesAdmin"></div>
+</div>
 </div>
 
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
 const supabase = window.supabase.createClient(
-  'https://ivbfughiyiihntlnbpet.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2YmZ1Z2hpeWlpaG50bG5icGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzQzNjYsImV4cCI6MjA4MjA1MDM2Nn0.YqIFdPkDGvLYpM0csqTM4xbJrFdgD0LZ6yySiTb5DQI'
+'https://ivbfughiyiihntlnbpet.supabase.co',
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2YmZ1Z2hpeWlpaG50bG5icGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzQzNjYsImV4cCI6MjA4MjA1MDM2Nn0.YqIFdPkDGvLYpM0csqTM4xbJrFdgD0LZ6yySiTb5DQI'
 );
 
 const $ = id => document.getElementById(id);
-
 let userId = null;
+let vehiculos = [];
 
 /* LOGIN */
 $('btnLogin').onclick = async () => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: $('email').value,
-    password: $('password').value
-  });
-  if (error) return alert(error.message);
-  iniciarSesion(data.user.id);
+const { data, error } = await supabase.auth.signInWithPassword({
+email: $('email').value,
+password: $('password').value
+});
+if(error) return alert(error.message);
+iniciarSesion(data.user.id);
 };
 
 /* REGISTRO */
 $('btnRegister').onclick = async () => {
-  const { data, error } = await supabase.auth.signUp({
-    email: $('email').value,
-    password: $('password').value
-  });
-  if (error) return alert(error.message);
+const { data, error } = await supabase.auth.signUp({
+email: $('email').value,
+password: $('password').value
+});
+if(error) return alert(error.message);
 
-  await supabase.from('profiles').insert({
-    id: data.user.id,
-    rol: $('rolSelect').value,
-    estado: 'pendiente'
-  });
+await supabase.from('profiles').insert({
+id: data.user.id,
+rol: $('rolSelect').value,
+estado: 'pendiente'
+});
 
-  alert('Registro enviado');
+alert('Registro enviado');
 };
 
-/* LOGOUT */
-$('btnLogout').onclick = async () => {
-  await supabase.auth.signOut();
-  location.reload();
-};
+/* SESIÓN */
+const { data: session } = await supabase.auth.getSession();
+if(session?.session) iniciarSesion(session.session.user.id);
 
+/* INICIAR SESIÓN */
 async function iniciarSesion(uid){
-  userId = uid;
+userId = uid;
 
-  const { data: perfil } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', uid)
-    .single();
+const { data: perfil } = await supabase
+.from('profiles')
+.select('*')
+.eq('id', uid)
+.single();
 
-  $('auth').classList.add('hidden');
-  $('panel').classList.remove('hidden');
-  $('btnLogout').classList.remove('hidden');
+$('auth').classList.add('hidden');
+$('panel').classList.remove('hidden');
+$('btnLogout').classList.remove('hidden');
 
-  $('rolUsuario').textContent = perfil.rol;
-  $('estadoUsuario').textContent = perfil.estado;
+$('rolUsuario').textContent = perfil.rol;
+$('estadoUsuario').textContent = perfil.estado;
 
-  if(perfil.rol === 'conductor'){
-    $('vistaConductor').classList.remove('hidden');
-    cargarCierresConductor();
-  }
+if(perfil.rol === 'conductor'){
+$('vistaConductor').classList.remove('hidden');
+cargarVehiculos();
+cargarCierresConductor();
+}
 
-  if(perfil.rol === 'controlador'){
-    $('vistaControlador').classList.remove('hidden');
-    cargarCierresControlador();
-  }
+if(perfil.rol === 'controlador'){
+$('vistaControlador').classList.remove('hidden');
+cargarCierresControlador();
+}
 
-  if(perfil.rol === 'admin'){
-    $('vistaAdmin').classList.remove('hidden');
-    cargarCierresAdmin();
-  }
+if(perfil.rol === 'admin'){
+$('vistaAdmin').classList.remove('hidden');
+cargarCierresAdmin();
+}
+}
+
+/* VEHÍCULOS */
+async function cargarVehiculos(){
+const { data } = await supabase.from('vehiculos').select('*').eq('conductor_id', userId);
+vehiculos = data || [];
+$('vehiculoMovimiento').innerHTML = vehiculos.map(v=>`<option value="${v.id}">${v.matricula}</option>`).join('');
 }
 
 /* CIERRES CONDUCTOR */
 async function cargarCierresConductor(){
-  const { data } = await supabase
-    .from('cierres_mensuales')
-    .select(`
-      fecha_cierre,
-      km_recorridos,
-      rendimiento,
-      vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
-    `)
-    .eq('conductor_id', userId);
+const { data } = await supabase
+.from('cierres_mensuales')
+.select(`
+fecha_cierre,
+km_recorridos,
+rendimiento,
+vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
+`)
+.eq('conductor_id', userId);
 
-  $('cierresMensualesConductor').innerHTML = data.map(c => `
-    <div class="cierre">
-      Vehículo: ${c.vehiculos.matricula}<br>
-      Fecha: ${c.fecha_cierre}<br>
-      KM: ${c.km_recorridos}<br>
-      Rendimiento: ${c.rendimiento.toFixed(2)} km/L
-    </div>
-  `).join('');
+$('cierresMensualesConductor').innerHTML = data.map(c=>`
+<div class="cierre-mensual-item">
+<b>Vehículo:</b> ${c.vehiculos.matricula}<br>
+<b>KM recorridos:</b> ${c.km_recorridos}<br>
+<b>Rendimiento:</b> ${c.rendimiento.toFixed(2)} km/L
+</div>
+`).join('');
 }
 
 /* CIERRES CONTROLADOR */
 async function cargarCierresControlador(){
-  const { data } = await supabase
-    .from('cierres_mensuales')
-    .select(`
-      fecha_cierre,
-      km_recorridos,
-      rendimiento,
-      vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
-    `);
+const { data } = await supabase
+.from('cierres_mensuales')
+.select(`
+fecha_cierre,
+km_recorridos,
+rendimiento,
+vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
+`);
 
-  $('cierresMensualesControlador').innerHTML = data.map(c => `
-    <div class="cierre">
-      Vehículo: ${c.vehiculos.matricula}<br>
-      KM: ${c.km_recorridos}<br>
-      Rendimiento: ${c.rendimiento.toFixed(2)}
-    </div>
-  `).join('');
+$('cierresMensualesControlador').innerHTML = data.map(c=>`
+<div class="cierre-mensual-item">
+<b>Vehículo:</b> ${c.vehiculos.matricula}<br>
+<b>KM:</b> ${c.km_recorridos}<br>
+<b>Rendimiento:</b> ${c.rendimiento.toFixed(2)}
+</div>
+`).join('');
 }
 
 /* CIERRES ADMIN */
 async function cargarCierresAdmin(){
-  const { data } = await supabase
-    .from('cierres_mensuales')
-    .select(`
-      fecha_cierre,
-      km_recorridos,
-      rendimiento,
-      vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
-    `);
+const { data } = await supabase
+.from('cierres_mensuales')
+.select(`
+fecha_cierre,
+km_recorridos,
+rendimiento,
+vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
+`);
 
-  $('cierresMensualesAdmin').innerHTML = data.map(c => `
-    <div class="cierre">
-      Vehículo: ${c.vehiculos.matricula}<br>
-      KM: ${c.km_recorridos}<br>
-      Rendimiento: ${c.rendimiento.toFixed(2)}
-    </div>
-  `).join('');
+$('cierresMensualesAdmin').innerHTML = data.map(c=>`
+<div class="cierre-mensual-item">
+<b>Vehículo:</b> ${c.vehiculos.matricula}<br>
+<b>KM:</b> ${c.km_recorridos}<br>
+<b>Rendimiento:</b> ${c.rendimiento.toFixed(2)}
+</div>
+`).join('');
 }
 
 });
@@ -239,4 +283,3 @@ async function cargarCierresAdmin(){
 
 </body>
 </html>
-
