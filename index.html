@@ -478,87 +478,104 @@
                 }
             };
 
-            /* CONDUCTOR: Cierre de mes */
-            btnCerrarMes.onclick = async () => {
-                const capacidadEstanqueCierre = document.getElementById('capacidadEstanqueCierre').value;
+            /* CONDUCTOR: Cierre de mes (con rendimiento) */
+btnCerrarMes.onclick = async () => {
+    const capacidadEstanqueCierre = document.getElementById('capacidadEstanqueCierre').value;
 
-                if (confirm('¿Estás seguro de que quieres cerrar el mes?')) {
-                    // Obtener el último y primer kilometraje del mes actual
-                    const { data: movimientos, error: errorMovimientos } = await supabase
-                        .from('movimientos_diarios')
-                        .select('km_salida, km_llegada')
-                        .eq('conductor_id', userIdGlobal)
-                        .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)) // Primer día del mes
-                        .lte('fecha', new Date().toISOString().slice(0, 10)) // Fecha actual
-                        .order('fecha', { ascending: true });
+    if (!vehiculos.length) {
+        return alert('Debes tener al menos un vehículo registrado');
+    }
 
-                    if (errorMovimientos) {
-                        return alert('Error al obtener los movimientos del mes: ' + errorMovimientos.message);
-                    }
+    if (!confirm('¿Estás seguro de que quieres cerrar el mes?')) return;
 
-                    if (!movimientos || movimientos.length === 0) {
-                        return alert('No hay movimientos registrados en este mes.');
-                    }
+    // Rango del mes actual
+    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+        .toISOString().slice(0, 10);
+    const finMes = new Date().toISOString().slice(0, 10);
 
-                    const kmInicioMes = movimientos[0].km_salida;
-                    const kmFinMes = movimientos[movimientos.length - 1].km_llegada;
+    /* 1️⃣ Obtener movimientos del mes */
+    const { data: movimientos, error: errorMov } = await supabase
+        .from('movimientos_diarios')
+        .select('km_salida, km_llegada, combustible_recibido')
+        .eq('conductor_id', userIdGlobal)
+        .gte('fecha', inicioMes)
+        .lte('fecha', finMes)
+        .order('fecha', { ascending: true });
 
-                    // Calcular el combustible total recibido durante el mes
-                    const { data: combustibleRecibidoData, error: errorCombustible } = await supabase
-                        .from('movimientos_diarios')
-                        .select('combustible_recibido')
-                        .eq('conductor_id', userIdGlobal)
-                        .gte('fecha', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)) // Primer día del mes
-                        .lte('fecha', new Date().toISOString().slice(0, 10)); // Fecha actual
+    if (errorMov) {
+        return alert('Error al obtener movimientos: ' + errorMov.message);
+    }
 
-                    let combustibleTotalRecibido = 0;
-                    if (combustibleRecibidoData) {
-                        combustibleTotalRecibido = combustibleRecibidoData.reduce((total, movimiento) => total + movimiento.combustible_recibido, 0);
-                    }
+    if (!movimientos || movimientos.length === 0) {
+        return alert('No hay movimientos registrados este mes');
+    }
 
-                    // Obtener el combustible inicial del mes anterior (si existe)
-                    const fechaMesAnterior = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
-                    const { data: cierreMesAnterior, error: errorCierreAnterior } = await supabase
-                        .from('cierres_mensuales')
-                        .select('combustible_final')
-                        .eq('conductor_id', userIdGlobal)
-                        .gte('fecha_cierre', fechaMesAnterior.toISOString().slice(0, 10))
-                        .lte('fecha_cierre', new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().slice(0, 10))
-                        .single();
+    /* 2️⃣ Cálculo de KM */
+    const kmInicioMes = movimientos[0].km_salida;
+    const kmFinMes = movimientos[movimientos.length - 1].km_llegada;
+    const kmRecorridos = kmFinMes - kmInicioMes;
 
-                    let combustibleInicialMes = 0;
-                    if (cierreMesAnterior) {
-                        combustibleInicialMes = cierreMesAnterior.combustible_final;
-                    }
+    /* 3️⃣ Combustible recibido */
+    const combustibleRecibido = movimientos.reduce(
+        (total, m) => total + (m.combustible_recibido || 0),
+        0
+    );
 
-                    // Calcular el combustible consumido
-                    const combustibleConsumido = combustibleInicialMes + combustibleTotalRecibido - calcularCombustibleFinal(capacidadEstanqueCierre, vehiculos[0].capacidad_estanque);
+    /* 4️⃣ Combustible inicial (cierre mes anterior) */
+    const { data: cierreAnterior } = await supabase
+        .from('cierres_mensuales')
+        .select('combustible_final')
+        .eq('conductor_id', userIdGlobal)
+        .order('fecha_cierre', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-                    // Crear el registro de cierre mensual
-                    const { data, error } = await supabase
-                        .from('cierres_mensuales')
-                        .insert({
-                            conductor_id: userIdGlobal,
-                            vehiculo_id: vehiculos[0].id,
-                            fecha_cierre: new Date().toISOString().slice(0, 10),
-                            combustible_inicial: combustibleInicialMes,
-                            combustible_recibido: combustibleTotalRecibido,
-                            combustible_consumido: combustibleConsumido,
-                            combustible_final: calcularCombustibleFinal(capacidadEstanqueCierre, vehiculos[0].capacidad_estanque),
-                            km_inicio: kmInicioMes,
-                            km_fin: kmFinMes,
-                            capacidad_estanque_cierre: capacidadEstanqueCierre
-                        });
+    const combustibleInicial = cierreAnterior?.combustible_final || 0;
 
-                    if (error) {
-                        return alert('Error al cerrar el mes: ' + error.message);
-                    }
+    /* 5️⃣ Combustible final */
+    const capacidadLitros = vehiculos[0].capacidad_estanque;
+    const combustibleFinal = calcularCombustibleFinal(
+        capacidadEstanqueCierre,
+        capacidadLitros
+    );
 
-                    alert('Mes cerrado correctamente');
-                    document.getElementById('mensajeCierre').textContent = 'Mes cerrado correctamente.';
-                    cargarCierresMensualesConductor(userIdGlobal); // Recargar cierres mensuales
-                }
-            };
+    /* 6️⃣ Combustible consumido */
+    const combustibleConsumido =
+        combustibleInicial + combustibleRecibido - combustibleFinal;
+
+    if (combustibleConsumido <= 0) {
+        return alert('El combustible consumido no es válido');
+    }
+
+    /* 7️⃣ Rendimiento */
+    const rendimiento = kmRecorridos / combustibleConsumido;
+
+    /* 8️⃣ Insertar cierre mensual */
+    const { error: errorInsert } = await supabase
+        .from('cierres_mensuales')
+        .insert({
+            conductor_id: userIdGlobal,
+            vehiculo_id: vehiculos[0].id,
+            fecha_cierre: finMes,
+            combustible_inicial: combustibleInicial,
+            combustible_recibido: combustibleRecibido,
+            combustible_consumido: combustibleConsumido,
+            combustible_final: combustibleFinal,
+            km_inicio: kmInicioMes,
+            km_fin: kmFinMes,
+            km_recorridos: kmRecorridos,
+            rendimiento: rendimiento,
+            capacidad_estanque_cierre: capacidadEstanqueCierre
+        });
+
+    if (errorInsert) {
+        return alert('Error al cerrar el mes: ' + errorInsert.message);
+    }
+
+    mensajeCierre.textContent = 'Mes cerrado correctamente ✅';
+    cargarCierresMensualesConductor(userIdGlobal);
+};
+
 
             // Función para calcular el combustible final en litros
             function calcularCombustibleFinal(capacidadEstanqueCierreFraccion, capacidadEstanqueLitros) {
