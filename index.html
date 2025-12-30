@@ -1,26 +1,23 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TRANSPORTE GUERREROS DEL CAMINO</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 body{margin:0;font-family:system-ui;background:#0b0b0e;color:#e5e7eb;padding:14px}
-.header{display:flex;justify-content:space-between;align-items:center}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .card{background:#111827;padding:16px;border-radius:14px;margin-bottom:14px}
 label{font-size:.85rem}
-input,select,textarea{width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px}
+input,select,textarea{width:100%;padding:10px;margin-bottom:10px;border-radius:8px;border:none;color:#333}
 button{padding:10px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
 .btn{background:#22c55e;color:black}
 .btn-sec{background:#334155;color:white}
 .btn-danger{background:#dc2626;color:white}
 .hidden{display:none}
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #333;padding:8px}
-th{background:#334155}
 .cierre-mensual-item{border:1px solid #333;padding:10px;margin-bottom:10px;border-radius:8px}
 </style>
 </head>
@@ -32,25 +29,22 @@ th{background:#334155}
 <button id="btnLogout" class="btn-danger hidden">Cerrar sesión</button>
 </div>
 
+<!-- LOGIN -->
+<div id="auth" class="card">
+<h3>Ingreso / Registro</h3>
+<input id="email" type="email" placeholder="Email">
+<input id="password" type="password" placeholder="Contraseña">
+<select id="rolSelect">
+<option disabled selected>Seleccione rol</option>
+<option value="conductor">Conductor</option>
+<option value="controlador">Controlador</option>
+<option value="admin">Administrador</option>
+</select>
+<button id="btnLogin" class="btn">Ingresar</button>
+<button id="btnRegister" class="btn-sec">Registrar</button>
+</div>
 
-    <!-- LOGIN / REGISTRO -->
-    <div id="auth" class="card">
-        <h3>Ingreso / Registro</h3>
-        <label>Email</label>
-        <input id="email" type="email">
-        <label>Contraseña</label>
-        <input id="password" type="password">
-        <label>Rol</label>
-        <select id="rolSelect">
-            <option value="" selected disabled>Seleccione rol</option>
-            <option value="conductor">Conductor</option>
-            <option value="controlador">Controlador</option>
-            <option value="admin">Administrador</option>
-        </select>
-        <button id="btnLogin" class="btn">Ingresar</button>
-        <button id="btnRegister" class="btn-sec">Registrar</button>
-    </div>
-
+<!-- PANEL -->
 <div id="panel" class="hidden">
 
 <div class="card">
@@ -59,7 +53,6 @@ Rol: <b id="rolUsuario"></b> | Estado: <b id="estadoUsuario"></b>
 
 <!-- CONDUCTOR -->
 <div id="vistaConductor" class="hidden card">
-
 <h3>Panel Conductor</h3>
 
 <h4>Cierre de Mes</h4>
@@ -69,12 +62,12 @@ Rol: <b id="rolUsuario"></b> | Estado: <b id="estadoUsuario"></b>
 <option value="3/4">3/4</option>
 <option value="4/4">4/4</option>
 </select>
+
 <button id="btnCerrarMes" class="btn">Cerrar Mes</button>
 <p id="mensajeCierre"></p>
 
 <h4>Mis Cierres Mensuales</h4>
 <div id="cierresMensualesConductor"></div>
-
 </div>
 
 <!-- CONTROLADOR -->
@@ -92,143 +85,202 @@ Rol: <b id="rolUsuario"></b> | Estado: <b id="estadoUsuario"></b>
 </div>
 
 <script>
+// ================= SUPABASE =================
 const supabase = window.supabase.createClient(
 'https://ivbfughiyiihntlnbpet.supabase.co',
-'PUBLIC_ANON_KEY'
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2YmZ1Z2hpeWlpaG50bG5icGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzQzNjYsImV4cCI6MjA4MjA1MDM2Nn0.YqIFdPkDGvLYpM0csqTM4xbJrFdgD0LZ6yySiTb5DQI'
 );
 
-const $ = id => document.getElementById(id);
+// ================= ELEMENTOS =================
+const btnLogin = document.getElementById('btnLogin');
+const btnRegister = document.getElementById('btnRegister');
+const btnLogout = document.getElementById('btnLogout');
+
+const email = document.getElementById('email');
+const password = document.getElementById('password');
+const rolSelect = document.getElementById('rolSelect');
+
+const auth = document.getElementById('auth');
+const panel = document.getElementById('panel');
+
+const rolUsuario = document.getElementById('rolUsuario');
+const estadoUsuario = document.getElementById('estadoUsuario');
+
+const vistaConductor = document.getElementById('vistaConductor');
+const vistaControlador = document.getElementById('vistaControlador');
+const vistaAdmin = document.getElementById('vistaAdmin');
+
+const btnCerrarMes = document.getElementById('btnCerrarMes');
+const capacidadEstanqueCierre = document.getElementById('capacidadEstanqueCierre');
+const mensajeCierre = document.getElementById('mensajeCierre');
 
 let userId = null;
 let rol = null;
-let vehiculos = [];
 
-btnLogin.onclick = async ()=>{
-const {data,error}=await supabase.auth.signInWithPassword({
-email:email.value,password:password.value
+// ================= LOGIN =================
+btnLogin.onclick = async () => {
+const { data, error } = await supabase.auth.signInWithPassword({
+email: email.value,
+password: password.value
 });
-if(error) return alert(error.message);
+if (error) return alert(error.message);
 init(data.user.id);
 };
 
-btnRegister.onclick = async ()=>{
-const {data,error}=await supabase.auth.signUp({
-email:email.value,password:password.value
+// ================= REGISTRO =================
+btnRegister.onclick = async () => {
+if (!email.value || !password.value || !rolSelect.value)
+return alert('Completa todos los campos');
+
+const { data, error } = await supabase.auth.signUp({
+email: email.value,
+password: password.value
 });
-if(error) return alert(error.message);
+if (error) return alert(error.message);
+
 await supabase.from('profiles').insert({
-id:data.user.id,rol:rolSelect.value,estado:'pendiente'
+id: data.user.id,
+rol: rolSelect.value,
+estado: 'pendiente'
 });
-alert('Registro enviado');
+
+alert('Registro enviado. Espera aprobación.');
 };
 
-btnLogout.onclick = async ()=>{
+// ================= LOGOUT =================
+btnLogout.onclick = async () => {
 await supabase.auth.signOut();
 location.reload();
 };
 
-supabase.auth.getSession().then(({data})=>{
-if(data.session) init(data.session.user.id);
+// ================= SESIÓN =================
+supabase.auth.getSession().then(({ data }) => {
+if (data.session) init(data.session.user.id);
 });
 
-async function init(uid){
-userId=uid;
-const {data:perfil}=await supabase.from('profiles').select('*').eq('id',uid).single();
-if(perfil.estado!=='activo') return alert('Cuenta no activa');
+async function init(uid) {
+userId = uid;
 
-$('auth').classList.add('hidden');
-$('panel').classList.remove('hidden');
-$('btnLogout').classList.remove('hidden');
+const { data: perfil, error } = await supabase
+.from('profiles')
+.select('*')
+.eq('id', uid)
+.single();
 
-rol=perfil.rol;
-$('rolUsuario').textContent=rol;
-$('estadoUsuario').textContent=perfil.estado;
+if (error || !perfil) return alert('Error perfil');
 
-if(rol==='conductor'){ $('vistaConductor').classList.remove('hidden'); cargarCierres(uid); }
-if(rol==='controlador'){ $('vistaControlador').classList.remove('hidden'); cargarCierresTodos('cierresMensualesControlador'); }
-if(rol==='admin'){ $('vistaAdmin').classList.remove('hidden'); cargarCierresTodos('cierresMensualesAdmin'); }
+if (perfil.estado !== 'activo') {
+await supabase.auth.signOut();
+return alert('Cuenta pendiente');
 }
 
-/* CIERRE DE MES */
-btnCerrarMes.onclick = async ()=>{
-const fraccion=$('capacidadEstanqueCierre').value;
+auth.classList.add('hidden');
+panel.classList.remove('hidden');
+btnLogout.classList.remove('hidden');
 
-const {data:movs}=await supabase
+rol = perfil.rol;
+rolUsuario.textContent = rol;
+estadoUsuario.textContent = perfil.estado;
+
+vistaConductor.classList.add('hidden');
+vistaControlador.classList.add('hidden');
+vistaAdmin.classList.add('hidden');
+
+if (rol === 'conductor') {
+vistaConductor.classList.remove('hidden');
+cargarCierresConductor();
+}
+if (rol === 'controlador') {
+vistaControlador.classList.remove('hidden');
+cargarCierresTodos('cierresMensualesControlador');
+}
+if (rol === 'admin') {
+vistaAdmin.classList.remove('hidden');
+cargarCierresTodos('cierresMensualesAdmin');
+}
+}
+
+// ================= CIERRE MES =================
+btnCerrarMes.onclick = async () => {
+
+const { data: movs } = await supabase
 .from('movimientos_diarios')
-.select('km_salida,km_llegada,combustible_recibido')
-.eq('conductor_id',userId);
+.select('km_salida, km_llegada, combustible_recibido')
+.eq('conductor_id', userId);
 
-if(!movs.length) return alert('Sin movimientos');
+if (!movs.length) return alert('No hay movimientos');
 
-const kmInicio=movs[0].km_salida;
-const kmFin=movs[movs.length-1].km_llegada;
-const kmRecorridos=kmFin-kmInicio;
+const kmInicio = movs[0].km_salida;
+const kmFin = movs[movs.length - 1].km_llegada;
+const kmRecorridos = kmFin - kmInicio;
 
-const combRec=movs.reduce((s,m)=>s+Number(m.combustible_recibido||0),0);
+const combustibleRecibido = movs.reduce((s,m)=>s + Number(m.combustible_recibido||0),0);
 
-const {data:ant}=await supabase.from('cierres_mensuales')
+const { data: ultimo } = await supabase
+.from('cierres_mensuales')
 .select('combustible_final')
-.eq('conductor_id',userId)
+.eq('conductor_id', userId)
 .order('fecha_cierre',{ascending:false})
-.limit(1).maybeSingle();
+.limit(1)
+.maybeSingle();
 
-const combIni=ant?.combustible_final||0;
+const combustibleInicial = ultimo?.combustible_final || 0;
 
-const capacidad=vehiculos[0]?.capacidad_estanque||100;
-const [n,d]=fraccion.split('/').map(Number);
-const combFinal=(n/d)*capacidad;
+const [n,d] = capacidadEstanqueCierre.value.split('/').map(Number);
+const capacidadEstanque = 100;
+const combustibleFinal = (n/d)*capacidadEstanque;
 
-const combConsumido=combIni+combRec-combFinal;
+const combustibleConsumido = combustibleInicial + combustibleRecibido - combustibleFinal;
 
-if(combConsumido<0||combConsumido>(combIni+combRec))
-return alert('❌ Error de combustible');
+if (combustibleConsumido <= 0 || combustibleConsumido > (combustibleInicial + combustibleRecibido))
+return alert('❌ Error: combustible inconsistente');
 
-const rendimiento=kmRecorridos/combConsumido;
+const rendimiento = kmRecorridos / combustibleConsumido;
 
 await supabase.from('cierres_mensuales').insert({
-conductor_id:userId,
-fecha_cierre:new Date().toISOString().slice(0,10),
-combustible_inicial:combIni,
-combustible_recibido:combRec,
-combustible_consumido:combConsumido,
-combustible_final:combFinal,
-km_inicio:kmInicio,
-km_fin:kmFin,
-km_recorridos:kmRecorridos,
-rendimiento:rendimiento
+conductor_id: userId,
+fecha_cierre: new Date().toISOString().slice(0,10),
+combustible_inicial: combustibleInicial,
+combustible_recibido: combustibleRecibido,
+combustible_consumido: combustibleConsumido,
+combustible_final: combustibleFinal,
+km_inicio: kmInicio,
+km_fin: kmFin,
+km_recorridos: kmRecorridos,
+rendimiento: rendimiento
 });
 
-$('mensajeCierre').textContent=`✔ Rendimiento: ${rendimiento.toFixed(2)} km/L`;
-cargarCierres(userId);
+mensajeCierre.textContent = `✔ Rendimiento: ${rendimiento.toFixed(2)} km/L`;
+cargarCierresConductor();
 };
 
-async function cargarCierres(uid){
-const {data}=await supabase.from('cierres_mensuales')
-.select('*').eq('conductor_id',uid);
+// ================= MOSTRAR CIERRES =================
+async function cargarCierresConductor(){
+const { data } = await supabase
+.from('cierres_mensuales')
+.select('*')
+.eq('conductor_id', userId);
 
-$('cierresMensualesConductor').innerHTML=data.map(c=>`
+cierresMensualesConductor.innerHTML = data.map(c=>`
 <div class="cierre-mensual-item">
 <b>Fecha:</b> ${c.fecha_cierre}<br>
-<b>KM:</b> ${c.km_recorridos}<br>
+<b>KM Recorridos:</b> ${c.km_recorridos}<br>
 <b>Rendimiento:</b>
 <span style="color:#22c55e">${c.rendimiento.toFixed(2)} km/L</span>
-</div>
-`).join('');
+</div>`).join('');
 }
 
 async function cargarCierresTodos(div){
-const {data}=await supabase.from('cierres_mensuales').select('*');
-$(div).innerHTML=data.map(c=>`
+const { data } = await supabase.from('cierres_mensuales').select('*');
+document.getElementById(div).innerHTML = data.map(c=>`
 <div class="cierre-mensual-item">
 <b>Conductor:</b> ${c.conductor_id}<br>
 <b>KM:</b> ${c.km_recorridos}<br>
 <b>Rendimiento:</b>
 <span style="color:#22c55e">${c.rendimiento.toFixed(2)} km/L</span>
-</div>
-`).join('');
+</div>`).join('');
 }
 </script>
 
 </body>
 </html>
-
