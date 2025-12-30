@@ -1,781 +1,228 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TRANSPORTE GUERREROS DEL CAMINO</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { margin: 0; font-family: system-ui; background: #0b0b0e; color: #e5e7eb; padding: 14px; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-        .card { background: #111827; padding: 16px; border-radius: 14px; margin-bottom: 14px; }
-        label { font-size: .85rem; }
-        input, select { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: none; color: #333; }
-        button { padding: 10px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
-        .btn { background: #22c55e; color: black; }
-        .btn-sec { background: #334155; color: white; }
-        .btn-danger { background: #dc2626; color: white; }
-        .hidden { display: none; }
-        .item { padding: 10px; border-bottom: 1px solid #333; }
-        .form-group { margin-bottom: 10px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
-        th { background-color: #334155; color: white; }
-        .conductor-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .cierres-mensuales-container { margin-top: 20px; }
-        .cierre-mensual-item { border: 1px solid #333; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRANSPORTE GUERREROS DEL CAMINO</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{margin:0;font-family:system-ui;background:#0b0b0e;color:#e5e7eb;padding:14px}
+.header{display:flex;justify-content:space-between;align-items:center}
+.card{background:#111827;padding:16px;border-radius:14px;margin-bottom:14px}
+label{font-size:.85rem}
+input,select,textarea{width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:10px}
+button{padding:10px;border-radius:8px;border:none;font-weight:600;cursor:pointer}
+.btn{background:#22c55e;color:black}
+.btn-sec{background:#334155;color:white}
+.btn-danger{background:#dc2626;color:white}
+.hidden{display:none}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #333;padding:8px}
+th{background:#334155}
+.cierre-mensual-item{border:1px solid #333;padding:10px;margin-bottom:10px;border-radius:8px}
+</style>
 </head>
+
 <body>
-    <div class="header">
-        <h2>TRANSPORTE GUERREROS DEL CAMINO</h2>
-        <button id="btnLogout" class="btn-danger hidden">Cerrar sesión</button>
-    </div>
 
-    <!-- LOGIN / REGISTRO -->
-    <div id="auth" class="card">
-        <h3>Ingreso / Registro</h3>
-        <label>Email</label>
-        <input id="email" type="email">
-        <label>Contraseña</label>
-        <input id="password" type="password">
-        <label>Rol</label>
-        <select id="rolSelect">
-            <option value="" selected disabled>Seleccione rol</option>
-            <option value="conductor">Conductor</option>
-            <option value="controlador">Controlador</option>
-            <option value="admin">Administrador</option>
-        </select>
-        <button id="btnLogin" class="btn">Ingresar</button>
-        <button id="btnRegister" class="btn-sec">Registrar</button>
-    </div>
-
-    <!-- PANEL -->
-    <div id="panel" class="hidden">
-        <div class="card">
-            Rol: <b id="rolUsuario"></b> |
-            Estado: <b id="estadoUsuario"></b>
-        </div>
-
-        <!-- CONDUCTOR -->
-        <div id="vistaConductor" class="hidden">
-            <div class="card">
-                <h3>Panel Conductor</h3>
-                <div class="conductor-panel">
-                    <div>
-                        <h4>Agregar Vehículo</h4>
-                        <div class="form-group">
-                            <label for="matriculaVehiculo">Matrícula:</label>
-                            <input type="text" id="matriculaVehiculo">
-                        </div>
-                        <div class="form-group">
-                            <label for="capacidadEstanque">Capacidad del Estanque (litros):</label>
-                            <input type="number" id="capacidadEstanque">
-                        </div>
-                        <button id="btnAgregarVehiculo" class="btn">Agregar Vehículo</button>
-                    </div>
-
-                    <div>
-                        <h4>Agregar Movimiento Diario</h4>
-                        <div class="form-group">
-                            <label for="fechaMovimiento">Fecha:</label>
-                            <input type="date" id="fechaMovimiento">
-                        </div>
-                        <div class="form-group">
-                            <label for="vehiculoMovimiento">Vehículo:</label>
-                            <select id="vehiculoMovimiento"></select>
-                        </div>
-                        <div class="form-group">
-                            <label for="combustibleRecibido">Combustible Recibido (litros):</label>
-                            <input type="number" id="combustibleRecibido">
-                        </div>
-                        <div class="form-group">
-                            <label for="kmSalida">KM Salida:</label>
-                            <input type="number" id="kmSalida">
-                        </div>
-                        <div class="form-group">
-                            <label for="horaSalida">Hora Salida:</label>
-                            <input type="time" id="horaSalida">
-                        </div>
-                        <div class="form-group">
-                            <label for="kmLlegada">KM Llegada:</label>
-                            <input type="number" id="kmLlegada">
-                        </div>
-                        <div class="form-group">
-                            <label for="horaLlegada">Hora Llegada:</label>
-                            <input type="time" id="horaLlegada">
-                        </div>
-                        <div class="form-group">
-                            <label for="personalTransportado">Personal Transportado:</label>
-                            <input type="number" id="personalTransportado">
-                        </div>
-                        <div class="form-group">
-                            <label for="tonelaje">Tonelaje:</label>
-                            <input type="number" id="tonelaje">
-                        </div>
-                        <div class="form-group">
-                            <label for="metrosCubicos">Metros Cúbicos:</label>
-                            <input type="number" id="metrosCubicos">
-                        </div>
-                        <div class="form-group">
-                            <label for="sintesisActividad">Síntesis de la Actividad:</label>
-                            <textarea id="sintesisActividad"></textarea>
-                        </div>
-                        <button id="btnAgregarMovimiento" class="btn">Agregar Movimiento</button>
-                    </div>
-                </div>
-
-                <h4>Movimientos Diarios</h4>
-                
-                <label for="filtroVehiculo">Filtrar por Vehículo:</label>
-                <select id="filtroVehiculo">
-                    <option value="">Todos</option>
-                </select>
-                
-                <table id="tablaMovimientos">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Vehículo</th>
-                            <th>Combustible Recibido</th>
-                            <th>KM Salida</th>
-                            <th>KM Llegada</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Movimientos diarios se insertarán aquí -->
-                    </tbody>
-                </table>
-
-                <h4>Cierre de Mes</h4>
-                <div class="form-group">
-                    <label for="capacidadEstanqueCierre">Capacidad del Estanque al Cierre (1/4, 2/4, 3/4, 4/4):</label>
-                    <select id="capacidadEstanqueCierre">
-                        <option value="1/4">1/4</option>
-                        <option value="2/4">2/4</option>
-                        <option value="3/4">3/4</option>
-                        <option value="4/4">4/4</option>
-                    </select>
-                </div>
-                <button id="btnCerrarMes" class="btn">Cerrar Mes</button>
-                <p id="mensajeCierre"></p>
-
-                 <!-- Visualización de Cierres Mensuales del Conductor -->
-                 <h4>Mis Cierres Mensuales</h4>
-                 <div id="cierresMensualesConductor" class="cierres-mensuales-container">
-                     <!-- Cierres mensuales del conductor se insertarán aquí -->
-                 </div>
-            </div>
-        </div>
-
-        <!-- CONTROLADOR -->
-        <div id="vistaControlador" class="hidden">
-            <div class="card">
-                <h3>Panel Controlador</h3>
-                <p>Revisión de registros operativos.</p>
-                <div id="cierresMensualesControlador" class="cierres-mensuales-container">Cargando cierres mensuales...</div>
-            </div>
-        </div>
-
-        <!-- ADMIN -->
-        <div id="vistaAdmin" class="hidden">
-            <div class="card">
-                <h3>Solicitudes pendientes</h3>
-                <div id="listaPendientes">Cargando...</div>
-            </div>
-            <div class="card">
-                <h3>Cierres Mensuales (Administrador)</h3>
-                <div id="cierresMensualesAdmin" class="cierres-mensuales-container">Cargando cierres mensuales...</div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const supabase = window.supabase.createClient(
-                'https://ivbfughiyiihntlnbpet.supabase.co',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2YmZ1Z2hpeWlpaG50bG5icGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NzQzNjYsImV4cCI6MjA4MjA1MDM2Nn0.YqIFdPkDGvLYpM0csqTM4xbJrFdgD0LZ6yySiTb5DQI'
-            );
-
-            let userIdGlobal = null;
-            let vehiculos = [];
-            let rolGlobal = null;
-
-            /* LOGIN */
-            btnLogin.onclick = async () => {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email.value,
-                    password: password.value
-                });
-                if (error) return alert(error.message);
-                iniciarSesion(data.user.id);
-            };
-
-            /* REGISTRO */
-            btnRegister.onclick = async () => {
-                if (!email.value || !password.value || !rolSelect.value) {
-                    return alert('Completa todos los campos');
-                }
-
-                const { data, error } = await supabase.auth.signUp({
-                    email: email.value,
-                    password: password.value
-                });
-                if (error) return alert(error.message);
-
-                const { error: perfilError } = await supabase.from('profiles').upsert({
-                    id: data.user.id,
-                    rol: rolSelect.value,
-                    estado: 'pendiente'
-                });
-
-                if (perfilError) return alert(perfilError.message);
-
-                alert('Registro enviado. Espera aprobación del administrador.');
-            };
-
-            /* LOGOUT */
-            btnLogout.onclick = async () => {
-                await supabase.auth.signOut();
-                location.reload();
-            };
-
-            /* SESIÓN */
-            supabase.auth.getSession().then(({ data }) => {
-                if (data.session) iniciarSesion(data.session.user.id);
-            });
-
-            async function iniciarSesion(userId) {
-                userIdGlobal = userId;
-                const { data: perfil, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userId)
-                    .single();
-
-                if (error) {
-                    console.error("Error al obtener el perfil:", error);
-                    alert('Error al cargar el perfil. Por favor, inténtelo de nuevo.');
-                    await supabase.auth.signOut();
-                    return;
-                }
-
-                if (!perfil) {
-                    console.warn("No se encontró el perfil para el usuario:", userId);
-                    alert('Perfil no encontrado. Contacte al administrador.');
-                    await supabase.auth.signOut();
-                    return;
-                }
-
-                if (perfil.estado !== 'activo') {
-                    alert('Cuenta pendiente de aprobación');
-                    await supabase.auth.signOut();
-                    return;
-                }
-
-                auth.classList.add('hidden');
-                panel.classList.remove('hidden');
-                btnLogout.classList.remove('hidden');
-
-                rolUsuario.textContent = perfil.rol;
-                estadoUsuario.textContent = perfil.estado;
-                rolGlobal = perfil.rol;
-
-                vistaConductor.classList.add('hidden');
-                vistaControlador.classList.add('hidden');
-                vistaAdmin.classList.add('hidden');
-
-                if (perfil.rol === 'conductor') {
-                    vistaConductor.classList.remove('hidden');
-                    cargarVehiculos(userId);
-                    cargarMovimientosDiarios(userId);
-                    cargarCierresMensualesConductor(userId); // Cargar cierres mensuales del conductor
-                }
-                if (perfil.rol === 'controlador') {
-                    vistaControlador.classList.remove('hidden');
-                    cargarCierresMensualesControlador();
-                }
-                if (perfil.rol === 'admin') {
-                    vistaAdmin.classList.remove('hidden');
-                    cargarPendientes();
-                    cargarCierresMensualesAdmin();
-                }
-            }
-
-            /* CONDUCTOR: Agregar vehículo */
-            btnAgregarVehiculo.onclick = async () => {
-                const matricula = matriculaVehiculo.value;
-                const capacidad = capacidadEstanque.value;
-
-                if (!matricula || !capacidad) {
-                    return alert('Completa todos los campos del vehículo');
-                }
-
-                const { data, error } = await supabase
-                    .from('vehiculos')
-                    .insert({
-                        conductor_id: userIdGlobal,
-                        matricula: matricula,
-                        capacidad_estanque: capacidad
-                    });
-
-                if (error) {
-                    return alert('Error al agregar vehículo: ' + error.message);
-                }
-
-                alert('Vehículo agregado correctamente');
-                matriculaVehiculo.value = '';
-                capacidadEstanque.value = '';
-                cargarVehiculos(userIdGlobal);
-            };
-
-            /* CONDUCTOR: Cargar vehículos */
-            async function cargarVehiculos(userId) {
-                const { data, error } = await supabase
-                    .from('vehiculos')
-                    .select('*')
-                    .eq('conductor_id', userId);
-
-                if (error) {
-                    return alert('Error al cargar vehículos: ' + error.message);
-                }
-
-                vehiculos = data;
-
-                // Limpiar y actualizar el select de vehículos para agregar movimiento
-                vehiculoMovimiento.innerHTML = '<option value="">Seleccione vehículo</option>';
-                vehiculos.forEach(vehiculo => {
-                    const option = document.createElement('option');
-                    option.value = vehiculo.id;
-                    option.textContent = vehiculo.matricula;
-                    vehiculoMovimiento.appendChild(option);
-                });
-
-                // Limpiar y actualizar el select de vehículos para filtrar
-                filtroVehiculo.innerHTML = '<option value="">Todos</option>';
-                vehiculos.forEach(vehiculo => {
-                    const option = document.createElement('option');
-                    option.value = vehiculo.id;
-                    option.textContent = vehiculo.matricula;
-                    filtroVehiculo.appendChild(option);
-                });
-            }
-
-            /* CONDUCTOR: Agregar movimiento diario */
-            btnAgregarMovimiento.onclick = async () => {
-                const fecha = document.getElementById('fechaMovimiento').value;
-                const vehiculoId = document.getElementById('vehiculoMovimiento').value;
-                const combustible = document.getElementById('combustibleRecibido').value;
-                const kmSalidaVal = document.getElementById('kmSalida').value;
-                const horaSalidaVal = document.getElementById('horaSalida').value;
-                const kmLlegadaVal = document.getElementById('kmLlegada').value;
-                const horaLlegadaVal = document.getElementById('horaLlegada').value;
-                const personal = document.getElementById('personalTransportado').value;
-                const tonelaje = document.getElementById('tonelaje').value;
-                const metrosCubicos = document.getElementById('metrosCubicos').value;
-                const sintesis = document.getElementById('sintesisActividad').value;
-
-                if (!fecha || !vehiculoId || !combustible || !kmSalidaVal || !kmLlegadaVal) {
-                    return alert('Completa todos los campos del movimiento diario');
-                }
-
-                const { data, error } = await supabase
-                    .from('movimientos_diarios')
-                    .insert({
-                        fecha: fecha,
-                        vehiculo_id: vehiculoId,
-                        combustible_recibido: combustible,
-                        km_salida: kmSalidaVal,
-                        hora_salida: horaSalidaVal,
-                        km_llegada: kmLlegadaVal,
-                        hora_llegada: horaLlegadaVal,
-                        personal_transportado: personal,
-                        tonelaje: tonelaje,
-                        metros_cubicos: metrosCubicos,
-                        sintesis_actividad: sintesis,
-                        conductor_id: userIdGlobal
-                    });
-
-                if (error) {
-                    return alert('Error al agregar movimiento: ' + error.message);
-                }
-
-                alert('Movimiento agregado correctamente');
-                fechaMovimiento.value = '';
-                combustibleRecibido.value = '';
-                kmSalida.value = '';
-                horaSalida.value = '';
-                kmLlegada.value = '';
-                horaLlegada.value = '';
-                personalTransportado.value = '';
-                tonelaje.value = '';
-                metrosCubicos.value = '';
-                sintesisActividad.value = '';
-
-                await cargarMovimientosDiarios(userIdGlobal); // Espera a que se recarguen los movimientos
-            };
-
-            /* CONDUCTOR: Cargar movimientos diarios */
-            async function cargarMovimientosDiarios(userId, vehiculoId = null) {
-                let query = supabase
-                    .from('movimientos_diarios')
-                    .select('*, vehiculos(matricula)')
-                    .eq('conductor_id', userId)
-                    .order('fecha', { ascending: false });
-
-                if (vehiculoId) {
-                    query = query.eq('vehiculo_id', vehiculoId);
-                }
-
-                const { data, error } = await query;
-
-                if (error) {
-                    alert('Error al cargar movimientos: ' + error.message);
-                    return;
-                }
-
-                const tablaBody = document.getElementById('tablaMovimientos').querySelector('tbody');
-                tablaBody.innerHTML = '';
-
-                data.forEach(movimiento => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${movimiento.fecha}</td>
-                        <td>${movimiento.vehiculos.matricula}</td>
-                        <td>${movimiento.combustible_recibido}</td>
-                        <td>${movimiento.km_salida}</td>
-                        <td>${movimiento.km_llegada}</td>
-                        <td>
-                            <button class="btn-danger" onclick="eliminarMovimiento('${movimiento.id}')">Eliminar</button>
-                        </td>
-                    `;
-                    tablaBody.appendChild(row);
-                });
-            }
-
-            /* CONDUCTOR: Filtrar movimientos por vehículo */
-            filtroVehiculo.addEventListener('change', (event) => {
-                const vehiculoId = event.target.value;
-                cargarMovimientosDiarios(userIdGlobal, vehiculoId === '' ? null : vehiculoId);
-            });
-
-            /* CONDUCTOR: Eliminar movimiento */
-            window.eliminarMovimiento = async (id) => {
-                if (confirm('¿Estás seguro de que quieres eliminar este movimiento?')) {
-                    const { error } = await supabase
-                        .from('movimientos_diarios')
-                        .delete()
-                        .eq('id', id);
-
-                    if (error) {
-                        return alert('Error al eliminar movimiento: ' + error.message);
-                    }
-
-                    alert('Movimiento eliminado correctamente');
-                    cargarMovimientosDiarios(userIdGlobal);
-                }
-            };
-
-            /* CONDUCTOR: Cierre de mes (con rendimiento) */
-btnCerrarMes.onclick = async () => {
-    const capacidadEstanqueCierre = document.getElementById('capacidadEstanqueCierre').value;
-
-    if (!vehiculos.length) {
-        return alert('Debes tener al menos un vehículo registrado');
-    }
-
-    if (!confirm('¿Estás seguro de que quieres cerrar el mes?')) return;
-
-    // Rango del mes actual
-    const inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-        .toISOString().slice(0, 10);
-    const finMes = new Date().toISOString().slice(0, 10);
-
-    /* 1️⃣ Obtener movimientos del mes */
-    const { data: movimientos, error: errorMov } = await supabase
-        .from('movimientos_diarios')
-        .select('km_salida, km_llegada, combustible_recibido')
-        .eq('conductor_id', userIdGlobal)
-        .gte('fecha', inicioMes)
-        .lte('fecha', finMes)
-        .order('fecha', { ascending: true });
-
-    if (errorMov) {
-        return alert('Error al obtener movimientos: ' + errorMov.message);
-    }
-
-    if (!movimientos || movimientos.length === 0) {
-        return alert('No hay movimientos registrados este mes');
-    }
-
-    /* 2️⃣ Cálculo de KM */
-    const kmInicioMes = movimientos[0].km_salida;
-    const kmFinMes = movimientos[movimientos.length - 1].km_llegada;
-    const kmRecorridos = kmFinMes - kmInicioMes;
-
-    /* 3️⃣ Combustible recibido */
-    const combustibleRecibido = movimientos.reduce(
-        (total, m) => total + (m.combustible_recibido || 0),
-        0
-    );
-
-    /* 4️⃣ Combustible inicial (cierre mes anterior) */
-    const { data: cierreAnterior } = await supabase
-        .from('cierres_mensuales')
-        .select('combustible_final')
-        .eq('conductor_id', userIdGlobal)
-        .order('fecha_cierre', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-    const combustibleInicial = cierreAnterior?.combustible_final || 0;
-
-    /* 5️⃣ Combustible final */
-    const capacidadLitros = vehiculos[0].capacidad_estanque;
-    const combustibleFinal = calcularCombustibleFinal(
-        capacidadEstanqueCierre,
-        capacidadLitros
-    );
-
-    /* 6️⃣ Combustible consumido */
-    const combustibleConsumido =
-        combustibleInicial + combustibleRecibido - combustibleFinal;
-
-    if (combustibleConsumido <= 0) {
-        return alert('El combustible consumido no es válido');
-    }
-
-    /* 7️⃣ Rendimiento */
-    const rendimiento = kmRecorridos / combustibleConsumido;
-
-    /* 8️⃣ Insertar cierre mensual */
-    const { error: errorInsert } = await supabase
-        .from('cierres_mensuales')
-        .insert({
-            conductor_id: userIdGlobal,
-            vehiculo_id: vehiculos[0].id,
-            fecha_cierre: finMes,
-            combustible_inicial: combustibleInicial,
-            combustible_recibido: combustibleRecibido,
-            combustible_consumido: combustibleConsumido,
-            combustible_final: combustibleFinal,
-            km_inicio: kmInicioMes,
-            km_fin: kmFinMes,
-            km_recorridos: kmRecorridos,
-            rendimiento: rendimiento,
-            capacidad_estanque_cierre: capacidadEstanqueCierre
-        });
-
-    if (errorInsert) {
-        return alert('Error al cerrar el mes: ' + errorInsert.message);
-    }
-
-    mensajeCierre.textContent = 'Mes cerrado correctamente ✅';
-    cargarCierresMensualesConductor(userIdGlobal);
+<div class="header">
+<h2>TRANSPORTE GUERREROS DEL CAMINO</h2>
+<button id="btnLogout" class="btn-danger hidden">Cerrar sesión</button>
+</div>
+
+<div id="auth" class="card">
+<h3>Ingreso / Registro</h3>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Contraseña">
+<select id="rolSelect">
+<option disabled selected>Seleccione rol</option>
+<option value="conductor">Conductor</option>
+<option value="controlador">Controlador</option>
+<option value="admin">Administrador</option>
+</select>
+<button id="btnLogin" class="btn">Ingresar</button>
+<button id="btnRegister" class="btn-sec">Registrar</button>
+</div>
+
+<div id="panel" class="hidden">
+
+<div class="card">
+Rol: <b id="rolUsuario"></b> | Estado: <b id="estadoUsuario"></b>
+</div>
+
+<!-- CONDUCTOR -->
+<div id="vistaConductor" class="hidden card">
+
+<h3>Panel Conductor</h3>
+
+<h4>Cierre de Mes</h4>
+<select id="capacidadEstanqueCierre">
+<option value="1/4">1/4</option>
+<option value="2/4">2/4</option>
+<option value="3/4">3/4</option>
+<option value="4/4">4/4</option>
+</select>
+<button id="btnCerrarMes" class="btn">Cerrar Mes</button>
+<p id="mensajeCierre"></p>
+
+<h4>Mis Cierres Mensuales</h4>
+<div id="cierresMensualesConductor"></div>
+
+</div>
+
+<!-- CONTROLADOR -->
+<div id="vistaControlador" class="hidden card">
+<h3>Panel Controlador</h3>
+<div id="cierresMensualesControlador"></div>
+</div>
+
+<!-- ADMIN -->
+<div id="vistaAdmin" class="hidden card">
+<h3>Panel Administrador</h3>
+<div id="cierresMensualesAdmin"></div>
+</div>
+
+</div>
+
+<script>
+const supabase = window.supabase.createClient(
+'https://ivbfughiyiihntlnbpet.supabase.co',
+'PUBLIC_ANON_KEY'
+);
+
+const $ = id => document.getElementById(id);
+
+let userId = null;
+let rol = null;
+let vehiculos = [];
+
+btnLogin.onclick = async ()=>{
+const {data,error}=await supabase.auth.signInWithPassword({
+email:email.value,password:password.value
+});
+if(error) return alert(error.message);
+init(data.user.id);
 };
 
+btnRegister.onclick = async ()=>{
+const {data,error}=await supabase.auth.signUp({
+email:email.value,password:password.value
+});
+if(error) return alert(error.message);
+await supabase.from('profiles').insert({
+id:data.user.id,rol:rolSelect.value,estado:'pendiente'
+});
+alert('Registro enviado');
+};
 
-            // Función para calcular el combustible final en litros
-            function calcularCombustibleFinal(capacidadEstanqueCierreFraccion, capacidadEstanqueLitros) {
-                const [numerador, denominador] = capacidadEstanqueCierreFraccion.split('/').map(Number);
-                return (numerador / denominador) * capacidadEstanqueLitros;
-            }
+btnLogout.onclick = async ()=>{
+await supabase.auth.signOut();
+location.reload();
+};
 
-            /* CONDUCTOR: Cargar cierres mensuales */
-            async function cargarCierresMensualesConductor(userId) {
-                const { data, error } = await supabase
-                    .from('cierres_mensuales')
-                    .select(`
-  *,
-  vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
-`)
+supabase.auth.getSession().then(({data})=>{
+if(data.session) init(data.session.user.id);
+});
 
-                    .eq('conductor_id', userId)
-                    .order('fecha_cierre', { ascending: false });
+async function init(uid){
+userId=uid;
+const {data:perfil}=await supabase.from('profiles').select('*').eq('id',uid).single();
+if(perfil.estado!=='activo') return alert('Cuenta no activa');
 
-                if (error) {
-                    console.error('Error al cargar cierres mensuales:', error); // Log the error
-                    return alert('Error al cargar cierres mensuales: ' + error.message);
-                }
+$('auth').classList.add('hidden');
+$('panel').classList.remove('hidden');
+$('btnLogout').classList.remove('hidden');
 
-                const cierresMensualesDiv = document.getElementById('cierresMensualesConductor');
-                cierresMensualesDiv.innerHTML = '';
+rol=perfil.rol;
+$('rolUsuario').textContent=rol;
+$('estadoUsuario').textContent=perfil.estado;
 
-                if (data && data.length > 0) {
-                    data.forEach(cierre => {
-                        const cierreDiv = document.createElement('div');
-                        cierreDiv.className = 'cierre-mensual-item';
-                        cierreDiv.innerHTML = `
-                            <b>Vehículo:</b> ${cierre.vehiculos ? cierre.vehiculos.matricula : 'N/A'}<br>
-                            <b>Fecha de Cierre:</b> ${cierre.fecha_cierre}<br>
-                            <b>Combustible Inicial:</b> ${cierre.combustible_inicial} litros<br>
-                            <b>Combustible Recibido:</b> ${cierre.combustible_recibido} litros<br>
-                            <b>Combustible Consumido:</b> ${cierre.combustible_consumido} litros<br>
-                            <b>Combustible Final:</b> ${cierre.combustible_final} litros<br>
-                            <b>KM Inicio:</b> ${cierre.km_inicio} km<br>
-                            <b>KM Fin:</b> ${cierre.km_fin} km<br>
-                            <b>Capacidad Estanque al Cierre:</b> ${cierre.capacidad_estanque_cierre}<br>
-                        `;
-                        cierresMensualesDiv.appendChild(cierreDiv);
-                    });
-                } else {
-                    cierresMensualesDiv.textContent = 'No hay cierres mensuales disponibles.';
-                }
-            }
+if(rol==='conductor'){ $('vistaConductor').classList.remove('hidden'); cargarCierres(uid); }
+if(rol==='controlador'){ $('vistaControlador').classList.remove('hidden'); cargarCierresTodos('cierresMensualesControlador'); }
+if(rol==='admin'){ $('vistaAdmin').classList.remove('hidden'); cargarCierresTodos('cierresMensualesAdmin'); }
+}
 
-            /* CONTROLADOR: Cargar cierres mensuales */
-            async function cargarCierresMensualesControlador() {
-                const { data, error } = await supabase
-                    .from('cierres_mensuales')
-                    .select(`
-  *,
-  profiles!cierres_mensuales_conductor_id_fkey (rol),
-  vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
-`)
+/* CIERRE DE MES */
+btnCerrarMes.onclick = async ()=>{
+const fraccion=$('capacidadEstanqueCierre').value;
 
-                    .order('fecha_cierre', { ascending: false });
+const {data:movs}=await supabase
+.from('movimientos_diarios')
+.select('km_salida,km_llegada,combustible_recibido')
+.eq('conductor_id',userId);
 
-                if (error) {
-                    return alert('Error al cargar cierres mensuales: ' + error.message);
-                }
+if(!movs.length) return alert('Sin movimientos');
 
-                const cierresMensualesDiv = document.getElementById('cierresMensualesControlador');
-                cierresMensualesDiv.innerHTML = '';
+const kmInicio=movs[0].km_salida;
+const kmFin=movs[movs.length-1].km_llegada;
+const kmRecorridos=kmFin-kmInicio;
 
-                if (data && data.length > 0) {
-                    data.forEach(cierre => {
-                        const cierreDiv = document.createElement('div');
-                        cierreDiv.className = 'cierre-mensual-item';
-                        cierreDiv.innerHTML = `
-                            <b>Conductor:</b> ${cierre.conductor_id} (Rol: ${cierre.profiles.rol})<br>
-                            <b>Vehículo:</b> ${cierre.vehiculos.matricula}<br>
-                            <b>Fecha de Cierre:</b> ${cierre.fecha_cierre}<br>
-                            <b>Combustible Inicial:</b> ${cierre.combustible_inicial} litros<br>
-                            <b>Combustible Recibido:</b> ${cierre.combustible_recibido} litros<br>
-                            <b>Combustible Consumido:</b> ${cierre.combustible_consumido} litros<br>
-                            <b>Combustible Final:</b> ${cierre.combustible_final} litros<br>
-                            <b>KM Inicio:</b> ${cierre.km_inicio} km<br>
-                            <b>KM Fin:</b> ${cierre.km_fin} km<br>
-                            <b>Capacidad Estanque al Cierre:</b> ${cierre.capacidad_estanque_cierre}<br>
-                        `;
-                        cierresMensualesDiv.appendChild(cierreDiv);
-                    });
-                } else {
-                    cierresMensualesDiv.textContent = 'No hay cierres mensuales disponibles.';
-                }
-            }
+const combRec=movs.reduce((s,m)=>s+Number(m.combustible_recibido||0),0);
 
-            /* ADMIN: cargar solicitudes */
-            async function cargarPendientes() {
-                listaPendientes.innerHTML = 'Cargando solicitudes...';
+const {data:ant}=await supabase.from('cierres_mensuales')
+.select('combustible_final')
+.eq('conductor_id',userId)
+.order('fecha_cierre',{ascending:false})
+.limit(1).maybeSingle();
 
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('id, rol')
-                    .eq('estado', 'pendiente');
+const combIni=ant?.combustible_final||0;
 
-                if (error) {
-                    listaPendientes.innerHTML = 'Error al cargar solicitudes';
-                    return;
-                }
+const capacidad=vehiculos[0]?.capacidad_estanque||100;
+const [n,d]=fraccion.split('/').map(Number);
+const combFinal=(n/d)*capacidad;
 
-                if (!data || data.length === 0) {
-                    listaPendientes.innerHTML = 'No hay solicitudes pendientes';
-                    return;
-                }
+const combConsumido=combIni+combRec-combFinal;
 
-                listaPendientes.innerHTML = '';
-                data.forEach(u => {
-                    const div = document.createElement('div');
-                    div.className = 'item';
-                    div.innerHTML = `
-                        <b>${u.id}</b><br>
-                        Rol solicitado: <b>${u.rol}</b><br><br>
-                        <button class="btn" onclick="aprobarUsuario('${u.id}')">Aceptar solicitud</button>
-                    `;
-                    listaPendientes.appendChild(div);
-                });
-            }
+if(combConsumido<0||combConsumido>(combIni+combRec))
+return alert('❌ Error de combustible');
 
-            /* ADMIN: aprobar */
-            window.aprobarUsuario = async (id) => {
-                const { error } = await supabase
-                    .from('profiles')
-                    .update({ estado: 'activo' })
-                    .eq('id', id);
+const rendimiento=kmRecorridos/combConsumido;
 
-                if (error) {
-                    alert('Error al aprobar usuario');
-                    return;
-                }
+await supabase.from('cierres_mensuales').insert({
+conductor_id:userId,
+fecha_cierre:new Date().toISOString().slice(0,10),
+combustible_inicial:combIni,
+combustible_recibido:combRec,
+combustible_consumido:combConsumido,
+combustible_final:combFinal,
+km_inicio:kmInicio,
+km_fin:kmFin,
+km_recorridos:kmRecorridos,
+rendimiento:rendimiento
+});
 
-                alert('Usuario aprobado correctamente');
-                cargarPendientes();
-            };
+$('mensajeCierre').textContent=`✔ Rendimiento: ${rendimiento.toFixed(2)} km/L`;
+cargarCierres(userId);
+};
 
-            /* ADMIN: Cargar cierres mensuales */
-            async function cargarCierresMensualesAdmin() {
-                const { data, error } = await supabase
-                    .from('cierres_mensuales')
-                    .select(`
-  *,
-  profiles!cierres_mensuales_conductor_id_fkey (rol),
-  vehiculos!cierres_mensuales_vehiculo_id_fkey (matricula)
-`)
+async function cargarCierres(uid){
+const {data}=await supabase.from('cierres_mensuales')
+.select('*').eq('conductor_id',uid);
 
+$('cierresMensualesConductor').innerHTML=data.map(c=>`
+<div class="cierre-mensual-item">
+<b>Fecha:</b> ${c.fecha_cierre}<br>
+<b>KM:</b> ${c.km_recorridos}<br>
+<b>Rendimiento:</b>
+<span style="color:#22c55e">${c.rendimiento.toFixed(2)} km/L</span>
+</div>
+`).join('');
+}
 
-                    .order('fecha_cierre', { ascending: false });
+async function cargarCierresTodos(div){
+const {data}=await supabase.from('cierres_mensuales').select('*');
+$(div).innerHTML=data.map(c=>`
+<div class="cierre-mensual-item">
+<b>Conductor:</b> ${c.conductor_id}<br>
+<b>KM:</b> ${c.km_recorridos}<br>
+<b>Rendimiento:</b>
+<span style="color:#22c55e">${c.rendimiento.toFixed(2)} km/L</span>
+</div>
+`).join('');
+}
+</script>
 
-                if (error) {
-                    return alert('Error al cargar cierres mensuales: ' + error.message);
-                }
-
-                const cierresMensualesDiv = document.getElementById('cierresMensualesAdmin');
-                cierresMensualesDiv.innerHTML = '';
-
-                if (data && data.length > 0) {
-                    data.forEach(cierre => {
-                        const cierreDiv = document.createElement('div');
-                        cierreDiv.className = 'cierre-mensual-item';
-                        cierreDiv.innerHTML = `
-                            <b>Conductor:</b> ${cierre.conductor_id} (Rol: ${cierre.profiles.rol})<br>
-                            <b>Vehículo:</b> ${cierre.vehiculos.matricula}<br>
-                            <b>Fecha de Cierre:</b> ${cierre.fecha_cierre}<br>
-                            <b>Combustible Inicial:</b> ${cierre.combustible_inicial} litros<br>
-                            <b>Combustible Recibido:</b> ${cierre.combustible_recibido} litros<br>
-                            <b>Combustible Consumido:</b> ${cierre.combustible_consumido} litros<br>
-                            <b>Combustible Final:</b> ${cierre.combustible_final} litros<br>
-                            <b>KM Inicio:</b> ${cierre.km_inicio} km<br>
-                            <b>KM Fin:</b> ${cierre.km_fin} km<br>
-                            <b>Capacidad Estanque al Cierre:</b> ${cierre.capacidad_estanque_cierre}<br>
-                            <button class="btn-sec" onclick="modificarCierreMensual('${cierre.id}')">Modificar Cierre</button>
-                        `;
-                        cierresMensualesDiv.appendChild(cierreDiv);
-                    });
-                } else {
-                    cierresMensualesDiv.textContent = 'No hay cierres mensuales disponibles.';
-                }
-            }
-
-            /* ADMIN: Modificar cierre mensual (simulado) */
-            window.modificarCierreMensual = async (id) => {
-                // Implementa aquí la lógica para modificar el cierre mensual
-                // Esto podría incluir abrir un formulario modal con los datos del cierre
-                // y permitir al administrador editar y guardar los cambios.
-                alert(`Función para modificar el cierre mensual con ID: ${id} (Implementación pendiente)`);
-            };
-
-            // Mantener la sesión al recargar la página
-            if (supabase.auth.getSession()) {
-                supabase.auth.getSession().then(({ data }) => {
-                    if (data.session) {
-                        iniciarSesion(data.session.user.id);
-                    }
-                });
-            }
-        });
-    </script>
 </body>
 </html>
