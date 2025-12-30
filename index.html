@@ -32,19 +32,24 @@ th{background:#334155}
 <button id="btnLogout" class="btn-danger hidden">Cerrar sesión</button>
 </div>
 
-<div id="auth" class="card">
-<h3>Ingreso / Registro</h3>
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Contraseña">
-<select id="rolSelect">
-<option disabled selected>Seleccione rol</option>
-<option value="conductor">Conductor</option>
-<option value="controlador">Controlador</option>
-<option value="admin">Administrador</option>
-</select>
-<button id="btnLogin" class="btn">Ingresar</button>
-<button id="btnRegister" class="btn-sec">Registrar</button>
-</div>
+
+    <!-- LOGIN / REGISTRO -->
+    <div id="auth" class="card">
+        <h3>Ingreso / Registro</h3>
+        <label>Email</label>
+        <input id="email" type="email">
+        <label>Contraseña</label>
+        <input id="password" type="password">
+        <label>Rol</label>
+        <select id="rolSelect">
+            <option value="" selected disabled>Seleccione rol</option>
+            <option value="conductor">Conductor</option>
+            <option value="controlador">Controlador</option>
+            <option value="admin">Administrador</option>
+        </select>
+        <button id="btnLogin" class="btn">Ingresar</button>
+        <button id="btnRegister" class="btn-sec">Registrar</button>
+    </div>
 
 <div id="panel" class="hidden">
 
@@ -226,3 +231,4 @@ $(div).innerHTML=data.map(c=>`
 
 </body>
 </html>
+
